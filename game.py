@@ -3,6 +3,7 @@ from tkinter import messagebox
 import random
 import string
 
+
 # === Global color palette and settings ===
 colors = ["#e91e63", "#f44336", "#2196f3", "#4caf50",
           "#ffeb3b", "#9c27b0", "#ff9800"]
@@ -11,6 +12,7 @@ center_bg = "#1e1f28"
 banner_height = 40
 side_width = 120
 
+
 root = tk.Tk()
 root.title("🎮 PyArcade - Mini Game Hub")
 root.geometry("900x650")
@@ -18,9 +20,11 @@ root.minsize(900, 650)
 root.resizable(True, True)
 root.config(bg=side_bg)
 
+
 # --- Gradient background canvas ---
 bg_canvas = tk.Canvas(root, width=900, height=650)
 bg_canvas.place(x=0, y=0)
+
 
 def draw_gradient(canvas, height, width, color1, color2):
     limit = height
@@ -36,17 +40,20 @@ def draw_gradient(canvas, height, width, color1, color2):
         color = f"#{nr>>8:02x}{ng>>8:02x}{nb>>8:02x}"
         canvas.create_line(0, i, width, i, fill=color)
 
+
 gradient_phase = 0
 def animate_gradient():
     global gradient_phase
-    c1_pos = (gradient_phase) % len(colors)
+    c1_pos = gradient_phase % len(colors)
     c2_pos = (gradient_phase + 3) % len(colors)
     bg_canvas.delete("all")
     draw_gradient(bg_canvas, 650, 900, colors[c1_pos], colors[c2_pos])
     gradient_phase = (gradient_phase + 1) % len(colors)
     root.after(100, animate_gradient)
 
+
 animate_gradient()
+
 
 # Side panels with animated icons
 left_side = tk.Canvas(root, width=side_width, height=650, bg=side_bg, highlightthickness=0)
@@ -54,10 +61,12 @@ left_side.place(x=0, y=0)
 right_side = tk.Canvas(root, width=side_width, height=650, bg=side_bg, highlightthickness=0)
 right_side.place(x=780, y=0)
 
+
 ICON_SIZE = 22
 LEFT_ICONS_COUNT = 10
 RIGHT_ICONS_COUNT = 14
 smiley_unicode = "☺"
+
 
 def create_star(canvas, x, y, color):
     size = ICON_SIZE
@@ -75,8 +84,10 @@ def create_star(canvas, x, y, color):
     ]
     return canvas.create_polygon(coords, fill=color, outline="")
 
+
 def create_smiley(canvas, x, y, color):
     return canvas.create_text(x, y, text=smiley_unicode, fill=color, font=("Segoe UI Emoji", 24, "bold"))
+
 
 def create_heart(canvas, x, y, color):
     size = ICON_SIZE * 0.7
@@ -85,6 +96,7 @@ def create_heart(canvas, x, y, color):
     id3 = canvas.create_polygon(x - size / 2, y, x + size / 2, y, x, y + size, fill=color, outline="")
     return (id1, id2, id3)
 
+
 def create_icon(canvas, kind, x, y, color):
     if kind == "star":
         return create_star(canvas, x, y, color)
@@ -92,6 +104,7 @@ def create_icon(canvas, kind, x, y, color):
         return create_smiley(canvas, x, y, color)
     elif kind == "heart":
         return create_heart(canvas, x, y, color)
+
 
 def generate_icons(canvas, count):
     icon_list = []
@@ -106,8 +119,10 @@ def generate_icons(canvas, count):
         icon_list.append({"id": id_, "kind": kind, "x": x, "y": y, "color": color})
     return icon_list
 
+
 left_icons = generate_icons(left_side, LEFT_ICONS_COUNT)
 right_icons = generate_icons(right_side, RIGHT_ICONS_COUNT)
+
 
 def animate_side_icons():
     for canvas, icon_data in [(left_side, left_icons), (right_side, right_icons)]:
@@ -162,19 +177,24 @@ def animate_side_icons():
                 canvas.coords(icon["id"][2], x - size / 2, y, x + size / 2, y, x, y + size)
     root.after(50, animate_side_icons)
 
+
 animate_side_icons()
+
 
 # Center content
 center_frame = tk.Frame(root, bg=center_bg)
 center_frame.place(x=side_width, y=0, width=660, height=650)
 
+
 # Banner in center_frame
 banner = tk.Canvas(center_frame, height=banner_height, bg="#121212", highlightthickness=0)
 banner.pack(fill="x")
 
+
 banner_shapes = []
 banner_pos = []
 banner_speeds = []
+
 
 def create_banner():
     banner_shapes.clear()
@@ -192,6 +212,7 @@ def create_banner():
         banner_pos.append(x)
         banner_speeds.append(random.choice([2, 3, 4]))
 
+
 def animate_banner():
     width = banner.winfo_width()
     for i in range(len(banner_shapes)):
@@ -204,9 +225,11 @@ def animate_banner():
         banner.coords(banner_shapes[i], x - 15, y - 15, x + 15, y + 15)
     banner.after(50, animate_banner)
 
+
 banner.bind("<Configure>", lambda e: create_banner())
 create_banner()
 animate_banner()
+
 
 # Button with flashing rainbow text and hover effect
 class HoverButton(tk.Button):
@@ -230,10 +253,13 @@ class HoverButton(tk.Button):
         self['background'] = self.defaultBackground
         self['foreground'] = self.defaultForeground
 
+
 def clear_frame():
+    # Clear all widgets in center_frame except the banner
     for w in center_frame.winfo_children():
-        if w is not banner and w is not banner:
+        if w is not banner:
             w.destroy()
+
 
 # --- Games Implementation ---
 
@@ -267,6 +293,7 @@ def number_guess_game():
     back_btn = HoverButton(btn_frame, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 14), width=12)
     back_btn.pack(side="left", padx=12)
 
+
 # Rock Paper Scissors
 def rps_game():
     clear_frame()
@@ -293,6 +320,7 @@ def rps_game():
     back_btn = HoverButton(container, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 16), width=14)
     back_btn.pack(pady=20)
 
+
 # Dice Roll Simulator
 def dice_roll():
     clear_frame()
@@ -315,6 +343,7 @@ def dice_roll():
     roll_btn.pack(side="left", padx=15)
     back_btn = HoverButton(btn_frame, text="Back", bg="#ff8a65", font=("Arial", 16), width=12, command=main_menu)
     back_btn.pack(side="left", padx=15)
+
 
 # Calculator
 def calculator():
@@ -364,6 +393,7 @@ def calculator():
     back_btn = HoverButton(container, text="Back", bg="#ff8a65", font=("Arial Black", 20), command=main_menu)
     back_btn.pack(pady=10, ipadx=5, ipady=5)
 
+
 # Password Generator
 def password_generator():
     clear_frame()
@@ -391,6 +421,7 @@ def password_generator():
     gen_btn.pack()
     back_btn = HoverButton(container, text="Back", bg="#ff8a65", font=("Arial Black", 22), command=main_menu)
     back_btn.pack(pady=15)
+
 
 # Tic Tac Toe
 def tictactoe():
@@ -424,6 +455,7 @@ def tictactoe():
         buttons.append(b)
     back_btn = HoverButton(container, text="Back", bg="#7e57c2", fg="white", font=("Arial Black", 20), command=main_menu)
     back_btn.pack(pady=15)
+
 
 # Balloon Pop
 def balloon_pop():
@@ -479,6 +511,7 @@ def balloon_pop():
     back_btn = HoverButton(container, text="Back", bg="#81c784", fg="white", font=("Arial Black", 20), command=main_menu)
     back_btn.pack(pady=15)
 
+
 # Main menu with scroll
 def main_menu():
     clear_frame()
@@ -516,14 +549,11 @@ def main_menu():
                         font=("Segoe Print", 24, "bold"))
         b.pack(pady=12)
     exit_btn = HoverButton(center_frame, text="Exit", command=root.destroy,
-                           bg="#d32f2f", fg="white",
-                           font=("Arial Black", 22), width=20, height=2)
+                          bg="#d32f2f", fg="white",
+                          font=("Arial Black", 22), width=20, height=2)
     exit_btn.pack(pady=18)
 
-def clear_frame():
-    for w in center_frame.winfo_children():
-        if w is not banner and w is not title_label:
-            w.destroy()
 
 main_menu()
 root.mainloop()
+
