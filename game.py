@@ -1,288 +1,329 @@
 import tkinter as tk
 from tkinter import messagebox
-import random
+import random, string
 
-# Number Guessing Game with its own window and UI
-def number_guessing():
-    def check_guess():
-        nonlocal attempts
-        try:
-            guess_num = int(entry.get())
-        except ValueError:
-            info_label.config(text="Please enter a valid integer", fg="red")
-            return
-        attempts += 1
-        if guess_num < number:
-            info_label.config(text="Too low! Try again.", fg="orange")
-        elif guess_num > number:
-            info_label.config(text="Too high! Try again.", fg="orange")
-        else:
-            messagebox.showinfo("Congrats!", f"You guessed it in {attempts} tries!")
-            window.destroy()
-        entry.delete(0, tk.END)
+# --- Window Setup ---
+root = tk.Tk()
+root.title("🎮 PyArcade - Mini Game Hub")
+root.geometry("700x600")
+root.config(bg="#1e1f28")  # Dark background for modern look
 
+title_label = tk.Label(
+    root, text="🎮 PyArcade - Mini Game Hub",
+    font=("Comic Sans MS", 26, "bold"),
+    bg="#304FFE", fg="white",
+    pady=16,
+    relief="raised",
+    bd=4
+)
+title_label.pack(fill="x")
+
+def clear_frame():
+    for widget in root.winfo_children():
+        if widget not in (title_label,):
+            widget.destroy()
+
+# Utility: Styled Button with hover effect
+class HoverButton(tk.Button):
+    def __init__(self, master=None, **kw):
+        tk.Button.__init__(self, master=master, **kw)
+        self.defaultBackground = self["background"]
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+    def on_enter(self, e):
+        self['background'] = '#ff7043'  # bright orange on hover
+        self['foreground'] = 'white'
+    def on_leave(self, e):
+        self['background'] = self.defaultBackground
+        self['foreground'] = 'black'
+
+def number_guess_game():
+    clear_frame()
+    container = tk.Frame(root, bg="#ffd54f", bd=5, relief="ridge")
+    container.pack(pady=15, padx=20, fill="both", expand=True)
+
+    tk.Label(container, text="🔢 Number Guessing Game", font=("Arial Black", 22), bg="#ffd54f", fg="#bf360c").pack(pady=12)
     number = random.randint(1, 20)
-    attempts = 0
-    window = tk.Toplevel()
-    window.title("Number Guessing Game")
-    window.geometry("350x200")
-    window.configure(bg="#101010")
-
-    title = tk.Label(window, text="Guess the number (1-20)", font=("Arial Bold", 16), bg="#101010", fg="cyan")
-    title.pack(pady=10)
-
-    entry = tk.Entry(window, font=("Arial", 14), justify="center")
+    
+    tk.Label(container, text="Guess a number (1–20):", font=("Arial", 14), bg="#ffd54f", fg="#3e2723").pack(pady=5)
+    entry = tk.Entry(container, font=("Arial", 16), justify="center")
     entry.pack(pady=5)
-    entry.focus()
+    result = tk.Label(container, text="", bg="#ffd54f", fg="green", font=("Arial", 14))
+    result.pack(pady=5)
 
-    check_btn = tk.Button(window, text="Check", font=("Arial", 14), bg="#00bfff", fg="white", command=check_guess)
-    check_btn.pack(pady=10)
+    def check_guess():
+        try:
+            guess = int(entry.get())
+            if guess < number:
+                result.config(text="⬇️ Too low!")
+            elif guess > number:
+                result.config(text="⬆️ Too high!")
+            else:
+                result.config(text="🎉 Correct! You guessed it!", fg="#2e7d32")
+        except:
+            result.config(text="⚠️ Enter a valid number!", fg="#d32f2f")
+    
+    btn_frame = tk.Frame(container, bg="#ffd54f")
+    btn_frame.pack(pady=15)
+    check_btn = HoverButton(btn_frame, text="Check", command=check_guess, bg="#fbc02d", font=("Arial", 14), width=12)
+    check_btn.pack(side="left", padx=12)
+    back_btn = HoverButton(btn_frame, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 14), width=12)
+    back_btn.pack(side="left", padx=12)
 
-    info_label = tk.Label(window, text="", font=("Arial", 12), bg="#101010")
-    info_label.pack()
-
-# Rock Paper Scissors with buttons and result label
-def rock_paper_scissors():
+def rps_game():
+    clear_frame()
+    container = tk.Frame(root, bg="#81d4fa", bd=5, relief="groove")
+    container.pack(pady=15, padx=20, fill="both", expand=True)
+    tk.Label(container, text="✊✋✌ Rock Paper Scissors", font=("Arial Black", 24), bg="#81d4fa", fg="#01579b").pack(pady=15)
+    options = ["Rock", "Paper", "Scissors"]
+    result = tk.Label(container, text="", bg="#81d4fa", font=("Arial", 16), fg="#0d47a1")
+    result.pack(pady=20)
+    
     def play(choice):
-        comp_choice = random.choice(['Rock', 'Paper', 'Scissors'])
-        result_text = f"Computer chose: {comp_choice}\nYou chose: {choice}\n"
-        wins = {
-            'Rock': 'Scissors',
-            'Scissors': 'Paper',
-            'Paper': 'Rock'
-        }
-        if comp_choice == choice:
-            result_text += "It's a Tie!"
-        elif wins[choice] == comp_choice:
-            result_text += "You Win!"
+        comp = random.choice(options)
+        if choice == comp:
+            res = "It's a tie!"
+        elif (choice == "Rock" and comp == "Scissors") or (choice == "Paper" and comp == "Rock") or (choice == "Scissors" and comp == "Paper"):
+            res = "🎉 You win!"
         else:
-            result_text += "You Lose!"
-        result_label.config(text=result_text)
+            res = "😢 You lose!"
+        result.config(text=f"Computer chose: {comp}\n{res}")
 
-    window = tk.Toplevel()
-    window.title("Rock Paper Scissors")
-    window.geometry("400x300")
-    window.configure(bg="#222222")
+    btn_frame = tk.Frame(container, bg="#81d4fa")
+    btn_frame.pack(pady=10)
+    for opt in options:
+        b = HoverButton(btn_frame, text=opt, bg="#4fc3f7", font=("Arial Black", 16), width=12,
+                          command=lambda o=opt: play(o))
+        b.pack(side="left", padx=10)
+    back_btn = HoverButton(container, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 16), width=14)
+    back_btn.pack(pady=20)
 
-    label = tk.Label(window, text="Choose Rock, Paper, or Scissors", font=("Helvetica", 16, "bold"), fg="white", bg="#222222")
-    label.pack(pady=15)
-
-    frame = tk.Frame(window, bg="#222222")
-    frame.pack()
-
-    for option in ['Rock', 'Paper', 'Scissors']:
-        btn = tk.Button(frame, text=option, width=10, height=2, font=("Arial", 14),
-                        command=lambda ch=option: play(ch),
-                        bg="#5dade2", fg="white", activebackground="#2e86c1")
-        btn.pack(side="left", padx=10)
-
-    result_label = tk.Label(window, text="", font=("Arial", 14), fg="yellow", bg="#222222")
-    result_label.pack(pady=20)
-
-# Dice Roll Simulator with a rolling animation
 def dice_roll():
-    window = tk.Toplevel()
-    window.title("Dice Roll Simulator")
-    window.geometry("300x250")
-    window.configure(bg="#2c3e50")
+    clear_frame()
+    container = tk.Frame(root, bg="#b9f6ca", bd=5, relief="sunken")
+    container.pack(pady=20, padx=20, fill="both", expand=True)
 
-    label = tk.Label(window, text="Click Roll to roll the dice", font=("Courier", 14), fg="white", bg="#2c3e50")
-    label.pack(pady=20)
-
-    dice_label = tk.Label(window, text="", font=("Helvetica", 100), fg="white", bg="#2c3e50")
-    dice_label.pack()
-
+    tk.Label(container, text="🎲 Dice Roll Simulator", font=("Arial Black", 26), bg="#b9f6ca", fg="#1b5e20").pack(pady=20)
+    label = tk.Label(container, text="🎲", font=("Arial Black", 120), bg="#b9f6ca", fg="#388e3c")
+    label.pack(pady=15)
+    
     def roll():
         last_num = None
-        for _ in range(5):
-            num = random.randint(1, 6)
-            dice_label.config(text=str(num))
-            window.update()
-            window.after(100)
-            last_num = num
-        dice_label.config(text=str(last_num))
+        for _ in range(6):
+            last_num = random.randint(1, 6)
+            label.config(text=str(last_num))
+            root.update()
+            root.after(70)
+        label.config(text=str(last_num))
+    
+    btn_frame = tk.Frame(container, bg="#b9f6ca")
+    btn_frame.pack(pady=20)
+    roll_btn = HoverButton(btn_frame, text="Roll Dice", bg="#66bb6a", font=("Arial Black", 16), width=16, command=roll)
+    roll_btn.pack(side="left", padx=15)
+    back_btn = HoverButton(btn_frame, text="Back", bg="#ff8a65", font=("Arial", 16), width=12, command=main_menu)
+    back_btn.pack(side="left", padx=15)
 
-    roll_btn = tk.Button(window, text="Roll", font=("Arial", 16), bg="#2980b9", fg="white", command=roll)
-    roll_btn.pack(pady=20)
-
-# Simple Calculator with input fields and operation buttons
 def calculator():
-    def calculate():
+    clear_frame()
+    container = tk.Frame(root, bg="#ffccbc", bd=6, relief="ridge")
+    container.pack(pady=15, padx=20, fill="both", expand=True)
+
+    tk.Label(container, text="🧮 Calculator", font=("Arial Black", 28), bg="#ffccbc", fg="#bf360c").pack(pady=15)
+    tk.Label(container, text="Enter numbers separated by space (e.g., 10 5 2):", bg="#ffccbc", fg="#3e2723", font=("Arial", 14)).pack(pady=5)
+    entry = tk.Entry(container, font=("Arial", 18), justify="center")
+    entry.pack(pady=8, ipadx=10, ipady=4)
+    result = tk.Label(container, text="", bg="#ffccbc", fg="green", font=("Arial Black", 18))
+    result.pack(pady=12)
+    
+    def calculate(op):
         try:
-            num1 = float(entry1.get())
-            num2 = float(entry2.get())
-            op = operation.get()
+            nums = list(map(float, entry.get().split()))
+            if not nums:
+                raise ValueError
             if op == '+':
-                result = num1 + num2
+                res = sum(nums)
             elif op == '-':
-                result = num1 - num2
-            elif op == '*':
-                result = num1 * num2
-            elif op == '/':
-                if num2 == 0:
-                    result_label.config(text="Error: Divide by zero", fg="red")
-                    return
-                result = num1 / num2
-            else:
-                result_label.config(text="Invalid Operation", fg="red")
-                return
-            result_label.config(text=f"Result: {result}", fg="lightgreen")
-        except ValueError:
-            result_label.config(text="Invalid Input", fg="red")
-
-    window = tk.Toplevel()
-    window.title("Simple Calculator")
-    window.geometry("350x300")
-    window.configure(bg="#34495e")
-
-    label = tk.Label(window, text="Enter numbers and select operation", font=("Arial", 14), fg="white", bg="#34495e")
-    label.pack(pady=10)
-
-    entry1 = tk.Entry(window, font=("Arial", 16), justify="center")
-    entry1.pack(pady=5)
-    entry2 = tk.Entry(window, font=("Arial", 16), justify="center")
-    entry2.pack(pady=5)
-
-    operation = tk.StringVar(value='+')
-    ops_frame = tk.Frame(window, bg="#34495e")
-    ops_frame.pack(pady=5)
-
-    for op in ['+', '-', '*', '/']:
-        tk.Radiobutton(ops_frame, text=op, variable=operation, value=op,
-                       font=("Arial", 14), bg="#34495e", fg="white",
-                       selectcolor="#2980b9", activebackground="#2980b9").pack(side="left", padx=8)
-
-    calc_btn = tk.Button(window, text="Calculate", font=("Arial", 14), bg="#27ae60", fg="white", command=calculate)
-    calc_btn.pack(pady=10)
-
-    result_label = tk.Label(window, text="", font=("Arial Bold", 16), bg="#34495e")
-    result_label.pack()
-
-# Password Generator with length input and display box
-def password_generator():
-    def generate():
-        length = entry.get()
-        if not length.isdigit() or int(length) <= 0:
-            output.configure(state='normal')
-            output.delete('1.0', tk.END)
-            output.insert(tk.END, "Enter a positive integer for length.")
-            output.configure(state='disabled')
-            return
-        length_val = int(length)
-        chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()"
-        passwd = "".join(random.choice(chars) for _ in range(length_val))
-        output.configure(state='normal')
-        output.delete('1.0', tk.END)
-        output.insert(tk.END, passwd)
-        output.configure(state='disabled')
-
-    window = tk.Toplevel()
-    window.title("Password Generator")
-    window.geometry("400x220")
-    window.configure(bg="#1b2631")
-
-    label = tk.Label(window, text="Enter password length:", font=("Helvetica", 14), fg="white", bg="#1b2631")
-    label.pack(pady=10)
-
-    entry = tk.Entry(window, font=("Arial", 16), justify="center")
-    entry.pack()
-
-    gen_btn = tk.Button(window, text="Generate Password", font=("Arial", 14), bg="#e67e22", fg="white", command=generate)
-    gen_btn.pack(pady=15)
-
-    output = tk.Text(window, height=2, font=("Consolas", 16), bg="#17202a", fg="lime", state='disabled')
-    output.pack(padx=10, fill="both")
-
-# Tic Tac Toe with grid of buttons
-def tic_tac_toe():
-    window = tk.Toplevel()
-    window.title("Tic Tac Toe")
-    window.geometry("350x400")
-    window.configure(bg="#1c2833")
-
-    turn = ['X']  # Use list to allow inner func to modify
-
-    board = [''] * 9
-    buttons = []
-
-    def check_winner():
-        wins = [
-            (0,1,2),(3,4,5),(6,7,8),  # rows
-            (0,3,6),(1,4,7),(2,5,8),  # cols
-            (0,4,8),(2,4,6)           # diagonals
-        ]
-        for a,b,c in wins:
-            if board[a] == board[b] == board[c] != '':
-                return board[a]
-        if '' not in board:
-            return 'Tie'
-        return None
-
-    def click(i):
-        if board[i] == '':
-            board[i] = turn[0]
-            buttons[i].config(text=turn[0], state='disabled',
-                              disabledforeground="#f7dc6f" if turn[0] == 'X' else "#85c1e9")
-            winner = check_winner()
-            if winner:
-                if winner == 'Tie':
-                    messagebox.showinfo("Tic Tac Toe", "It's a tie!")
+                if len(nums) == 1:
+                    res = nums[0]
                 else:
-                    messagebox.showinfo("Tic Tac Toe", f"Player {winner} wins!")
-                window.destroy()
-            turn[0] = 'O' if turn[0] == 'X' else 'X'
+                    res = nums[0] - sum(nums[1:])
+            elif op == '*':
+                res = 1
+                for n in nums:
+                    res *= n
+            elif op == '/':
+                res = nums[0]
+                for n in nums[1:]:
+                    if n == 0:
+                        raise ZeroDivisionError
+                    res /= n
+            result.config(text=f"Result: {res}", fg="#2e7d32")
+        except ZeroDivisionError:
+            result.config(text="Error: Divide by zero", fg="#d32f2f")
+        except:
+            result.config(text="Invalid input!", fg="#d32f2f")
+    
+    btn_frame = tk.Frame(container, bg="#ffccbc")
+    btn_frame.pack(pady=12)
+    for idx, symbol in enumerate(['+', '-', '*', '/']):
+        btn = HoverButton(btn_frame, text=symbol, width=8, font=("Arial Black", 18), bg="#ff8a65", command=lambda s=symbol: calculate(s))
+        btn.grid(row=0, column=idx, padx=8)
 
-    title = tk.Label(window, text="Tic Tac Toe", font=("Arial Black", 20), fg="white", bg="#1c2833")
-    title.pack(pady=10)
+    clear_btn = HoverButton(container, text="Clear All", bg="#f06292", fg="white", font=("Arial Black", 18), command=lambda: (entry.delete(0, 'end'), result.config(text="", fg="green")))
+    clear_btn.pack(pady=15, ipadx=5, ipady=5)
 
-    frame = tk.Frame(window, bg="#1c2833")
+    back_btn = HoverButton(container, text="Back", bg="#ff8a65", font=("Arial Black", 20), command=main_menu)
+    back_btn.pack(pady=10, ipadx=5, ipady=5)
+
+def password_generator():
+    clear_frame()
+    container = tk.Frame(root, bg="#b3e5fc", bd=6, relief="sunken")
+    container.pack(pady=15, padx=20, fill="both", expand=True)
+
+    tk.Label(container, text="🔐 Password Generator", font=("Arial Black", 26), bg="#b3e5fc", fg="#01579b").pack(pady=16)
+    tk.Label(container, text="Enter password length:", font=("Arial", 16), bg="#b3e5fc", fg="#003c8f").pack(pady=8)
+    
+    entry = tk.Entry(container, font=("Arial", 20), justify="center")
+    entry.pack(pady=6)
+    
+    output = tk.Entry(container, font=("Courier New", 18, "bold"), justify="center", width=40, bg="#e1f5fe", fg="#01579b", bd=4, relief="ridge")
+    output.pack(pady=12)
+    
+    def generate():
+        try:
+            length = int(entry.get())
+            if length <= 0: raise ValueError
+            chars = string.ascii_letters + string.digits + "!@#$%^&*()"
+            password = ''.join(random.choice(chars) for _ in range(length))
+            output.delete(0, tk.END)
+            output.insert(0, password)
+        except:
+            messagebox.showerror("Error", "Please enter a valid positive number")
+    
+    btn_frame = tk.Frame(container, bg="#b3e5fc")
+    btn_frame.pack(pady=10)
+    gen_btn = HoverButton(btn_frame, text="Generate", bg="#0288d1", fg="white", font=("Arial Black", 20), width=20, command=generate)
+    gen_btn.pack()
+    
+    back_btn = HoverButton(container, text="Back", bg="#ff8a65", font=("Arial Black", 22), command=main_menu)
+    back_btn.pack(pady=15)
+
+def tictactoe():
+    clear_frame()
+    container = tk.Frame(root, bg="#d1c4e9", bd=5, relief="groove")
+    container.pack(pady=15, padx=20, fill="both", expand=True)
+
+    tk.Label(container, text="⭕❌ Tic Tac Toe", font=("Arial Black", 28), bg="#d1c4e9", fg="#311b92").pack(pady=20)
+    current = ["X"]
+    buttons = []
+    
+    def check_winner():
+        wins = [(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6)]
+        for a,b,c in wins:
+            if buttons[a]["text"] == buttons[b]["text"] == buttons[c]["text"] != "":
+                messagebox.showinfo("Game Over", f"{buttons[a]['text']} wins!")
+                for btn in buttons: btn.config(state="disabled")
+                return True
+        if all(btn["text"] != "" for btn in buttons):
+            messagebox.showinfo("Game Over", "It's a tie!")
+            return True
+        return False
+    
+    def click(i):
+        if buttons[i]["text"] == "":
+            buttons[i].config(text=current[0], fg="#4527a0", font=("Arial Black", 24))
+            if not check_winner():
+                current[0] = "O" if current[0]=="X" else "X"
+    
+    frame = tk.Frame(container, bg="#d1c4e9")
     frame.pack()
-
     for i in range(9):
-        b = tk.Button(frame, text="", width=5, height=2, font=("Arial Black", 24), command=lambda i=i: click(i), bg="#34495e", fg="white")
-        b.grid(row=i//3, column=i%3, padx=5, pady=5)
+        b = tk.Button(frame, text="", width=6, height=3, bg="#ede7f6", relief="raised", bd=4, command=lambda i=i: click(i))
+        b.grid(row=i//3, column=i%3, padx=8, pady=8)
         buttons.append(b)
+    back_btn = HoverButton(container, text="Back", bg="#7e57c2", fg="white", font=("Arial Black", 20), command=main_menu)
+    back_btn.pack(pady=15)
 
-# Main launcher window with buttons and styling for each game
-class GameCollectionApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Simple Python Games Collection")
-        self.geometry("450x500")
-        self.configure(bg="#121212")
+def balloon_pop():
+    clear_frame()
+    container = tk.Frame(root, bg="#c8e6c9", bd=6, relief="ridge")
+    container.pack(pady=20, padx=20, fill="both", expand=True)
+    
+    tk.Label(container, text="🎈 Balloon Pop Game - 30 seconds", font=("Arial Black", 24), bg="#c8e6c9", fg="#1b5e20").pack(pady=15)
+    canvas = tk.Canvas(container, width=600, height=380, bg="#a5d6a7", bd=4, relief="sunken")
+    canvas.pack(pady=10)
+    score = [0]
+    time_left = [30]
+    score_label = tk.Label(container, text=f"Score: {score[0]} | Time: {time_left[0]}s", bg="#c8e6c9", fg="#2e7d32", font=("Arial Black", 14))
+    score_label.pack()
 
-        title = tk.Label(self, text="Simple Python Games", font=("Comic Sans MS", 22, "bold"), fg="#f39c12", bg="#121212")
-        title.pack(pady=25)
+    balloons = {}
 
-        btn_style = {
-            "font": ("Arial", 14, "bold"),
-            "bg": "#34495e",
-            "fg": "white",
-            "relief": "raised",
-            "bd": 4,
-            "activebackground": "#f39c12",
-            "activeforeground": "black",
-            "width": 30,
-            "pady": 8
-        }
+    def pop_balloon(evt):
+        items = canvas.find_withtag("current")
+        for it in items:
+            if "balloon" in canvas.gettags(it):
+                group = balloons.get(it, [])
+                for item_id in group:
+                    try:
+                        canvas.delete(item_id)
+                    except:
+                        pass
+                for key in list(balloons.keys()):
+                    if it in balloons[key]:
+                        del balloons[key]
+                        break
+                score[0] += 1
+                score_label.config(text=f"Score: {score[0]} | Time: {time_left[0]}s")
+                break
 
-        games = [
-            ("Number Guessing", number_guessing),
-            ("Rock Paper Scissors", rock_paper_scissors),
-            ("Dice Roll Simulator", dice_roll),
-            ("Calculator", calculator),
-            ("Password Generator", password_generator),
-            ("Tic Tac Toe", tic_tac_toe),
-        ]
+    def spawn_balloon():
+        if time_left[0] > 0:
+            x, y = random.randint(20, 540), random.randint(20, 320)
+            color = random.choice(["#e57373","#81c784","#64b5f6","#ffb74d","#fff176"])
+            b1 = canvas.create_oval(x, y, x+40, y+55, fill=color, outline="", tags=("balloon",))
+            b2 = canvas.create_line(x+20, y+55, x+20, y+75, fill=color, width=2, tags=("balloon",))
+            balloons[b1] = [b1, b2]
+            canvas.tag_bind(b1, "<Button-1>", pop_balloon)
+            canvas.tag_bind(b2, "<Button-1>", pop_balloon)
+            root.after(random.randint(600, 1200), spawn_balloon)
 
-        for (text, func) in games:
-            btn = tk.Button(self, text=text, command=func, **btn_style)
-            btn.pack(pady=8)
+    def countdown():
+        if time_left[0] > 0:
+            time_left[0] -= 1
+            score_label.config(text=f"Score: {score[0]} | Time: {time_left[0]}s")
+            root.after(1000, countdown)
+        else:
+            canvas.delete("all")
+            messagebox.showinfo("Time Up!", f"🎯 Final Score: {score[0]}")
+            main_menu()
 
-        quit_btn = tk.Button(self, text="Exit", command=self.destroy, font=("Arial", 14, "bold"),
-                             bg="#c0392b", fg="white", width=30, pady=8)
-        quit_btn.pack(pady=20)
+    spawn_balloon()
+    countdown()
+    back_btn = HoverButton(container, text="Back", bg="#81c784", fg="white", font=("Arial Black", 20), command=main_menu)
+    back_btn.pack(pady=15)
 
-if __name__ == "__main__":
-    app = GameCollectionApp()
-    app.mainloop()
+def main_menu():
+    clear_frame()
+    options = [
+        ("🔢 Number Guessing", number_guess_game),
+        ("✊✋✌ Rock Paper Scissors", rps_game),
+        ("🎲 Dice Roll Simulator", dice_roll),
+        ("🧮 Calculator", calculator),
+        ("🔐 Password Generator", password_generator),
+        ("⭕❌ Tic Tac Toe", tictactoe),
+        ("🎈 Balloon Pop Game", balloon_pop),
+    ]
+    frame = tk.Frame(root, bg="#1e1f28")
+    frame.pack(pady=70)
+    header = tk.Label(frame, text="Select a Game", font=("Comic Sans MS", 32, "bold"), fg="#00bcd4", bg="#1e1f28")
+    header.pack(pady=20)
+    for (text, cmd) in options:
+        b = HoverButton(frame, text=text, command=cmd, bg="#03a9f4", fg="white", font=("Comic Sans MS", 20), width=30, height=2)
+        b.pack(pady=12)
+    exit_btn = HoverButton(root, text="Exit", command=root.destroy, bg="#d32f2f", fg="white", font=("Arial Black", 22), width=20, height=2)
+    exit_btn.pack(pady=18)
+
+main_menu()
+root.mainloop()
+
