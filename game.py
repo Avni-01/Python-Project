@@ -15,44 +15,51 @@ side_width = 120
 
 root = tk.Tk()
 root.title("🎮 PyArcade - Mini Game Hub")
-root.geometry("900x650")
-root.minsize(900, 650)
+
+# === FULLSCREEN MODE ===
+root.state("zoomed")           # Open window in full-screen (Windows)
+root.attributes("-fullscreen", True)  # set to True for true fullscreen
 root.resizable(True, True)
 root.config(bg=side_bg)
 
-
 # --- Gradient background canvas ---
-bg_canvas = tk.Canvas(root, width=900, height=650)
-bg_canvas.place(x=0, y=0)
-
+bg_canvas = tk.Canvas(root, highlightthickness=0)
+bg_canvas.pack(fill="both", expand=True)
 
 def draw_gradient(canvas, height, width, color1, color2):
-    limit = height
     (r1, g1, b1) = canvas.winfo_rgb(color1)
     (r2, g2, b2) = canvas.winfo_rgb(color2)
-    r_ratio = float(r2 - r1) / limit
-    g_ratio = float(g2 - g1) / limit
-    b_ratio = float(b2 - b1) / limit
-    for i in range(limit):
+    r_ratio = float(r2 - r1) / height
+    g_ratio = float(g2 - g1) / height
+    b_ratio = float(b2 - b1) / height
+    for i in range(height):
         nr = int(r1 + (r_ratio * i))
         ng = int(g1 + (g_ratio * i))
         nb = int(b1 + (b_ratio * i))
         color = f"#{nr>>8:02x}{ng>>8:02x}{nb>>8:02x}"
         canvas.create_line(0, i, width, i, fill=color)
 
-
 gradient_phase = 0
 def animate_gradient():
     global gradient_phase
+    width = root.winfo_width()
+    height = root.winfo_height()
     c1_pos = gradient_phase % len(colors)
     c2_pos = (gradient_phase + 3) % len(colors)
     bg_canvas.delete("all")
-    draw_gradient(bg_canvas, 650, 900, colors[c1_pos], colors[c2_pos])
+    draw_gradient(bg_canvas, height, width, colors[c1_pos], colors[c2_pos])
     gradient_phase = (gradient_phase + 1) % len(colors)
     root.after(100, animate_gradient)
 
-
 animate_gradient()
+
+# Handle ESC key to exit fullscreen and F11 to toggle it
+def toggle_fullscreen(event=None):
+    root.attributes("-fullscreen", not root.attributes("-fullscreen"))
+def exit_fullscreen(event=None):
+    root.attributes("-fullscreen", False)
+root.bind("<F11>", toggle_fullscreen)
+root.bind("<Escape>", exit_fullscreen)
 
 
 # Side panels with animated icons
@@ -66,8 +73,6 @@ ICON_SIZE = 22
 LEFT_ICONS_COUNT = 10
 RIGHT_ICONS_COUNT = 14
 smiley_unicode = "☺"
-
-
 def create_star(canvas, x, y, color):
     size = ICON_SIZE
     coords = [
@@ -95,8 +100,6 @@ def create_heart(canvas, x, y, color):
     id2 = canvas.create_oval(x, y - size / 2, x + size / 2, y, fill=color, outline="")
     id3 = canvas.create_polygon(x - size / 2, y, x + size / 2, y, x, y + size, fill=color, outline="")
     return (id1, id2, id3)
-
-
 def create_icon(canvas, kind, x, y, color):
     if kind == "star":
         return create_star(canvas, x, y, color)
@@ -122,8 +125,6 @@ def generate_icons(canvas, count):
 
 left_icons = generate_icons(left_side, LEFT_ICONS_COUNT)
 right_icons = generate_icons(right_side, RIGHT_ICONS_COUNT)
-
-
 def animate_side_icons():
     for canvas, icon_data in [(left_side, left_icons), (right_side, right_icons)]:
         height = 650
@@ -194,8 +195,6 @@ banner.pack(fill="x")
 banner_shapes = []
 banner_pos = []
 banner_speeds = []
-
-
 def create_banner():
     banner_shapes.clear()
     banner_pos.clear()
@@ -224,8 +223,6 @@ def animate_banner():
         y = banner_height // 2
         banner.coords(banner_shapes[i], x - 15, y - 15, x + 15, y + 15)
     banner.after(50, animate_banner)
-
-
 banner.bind("<Configure>", lambda e: create_banner())
 create_banner()
 animate_banner()
@@ -233,10 +230,10 @@ animate_banner()
 
 # Button with flashing rainbow text and hover effect
 class HoverButton(tk.Button):
-    def __init__(self, master=None, **kw):
+    def _init_(self, master=None, **kw):
         self.flash_colors = colors
         self.flash_index = 0
-        super().__init__(master=master, **kw)
+        super()._init_(master=master, **kw)
         self.defaultBackground = self["background"]
         self.defaultForeground = self["foreground"]
         self.bind("<Enter>", self.on_enter)
@@ -252,8 +249,6 @@ class HoverButton(tk.Button):
     def on_leave(self, e):
         self['background'] = self.defaultBackground
         self['foreground'] = self.defaultForeground
-
-
 def clear_frame():
     # Clear all widgets in center_frame except the banner
     for w in center_frame.winfo_children():
@@ -279,21 +274,19 @@ def number_guess_game():
         try:
             guess = int(entry.get())
             if guess < number:
-                result.config(text="⬇️ Too low!", fg="#f57c00")
+                result.config(text="⬇ Too low!", fg="#f57c00")
             elif guess > number:
-                result.config(text="⬆️ Too high!", fg="#f57c32")
+                result.config(text="⬆ Too high!", fg="#f57c32")
             else:
                 result.config(text="🎉 Correct! You guessed it!", fg="#2e7d32")
         except:
-            result.config(text="⚠️ Enter a valid number!", fg="#d32f2f")
+            result.config(text="⚠ Enter a valid number!", fg="#d32f2f")
     btn_frame = tk.Frame(container, bg="#ffd54f")
     btn_frame.pack(pady=15)
     check_btn = HoverButton(btn_frame, text="Check", command=check_guess, bg="#fbc02d", font=("Arial", 14), width=12)
     check_btn.pack(side="left", padx=12)
     back_btn = HoverButton(btn_frame, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 14), width=12)
     back_btn.pack(side="left", padx=12)
-
-
 # Rock Paper Scissors
 def rps_game():
     clear_frame()
@@ -319,8 +312,6 @@ def rps_game():
         b.pack(side="left", padx=10)
     back_btn = HoverButton(container, text="Back", command=main_menu, bg="#ff8a65", font=("Arial", 16), width=14)
     back_btn.pack(pady=20)
-
-
 # Dice Roll Simulator
 def dice_roll():
     clear_frame()
@@ -343,8 +334,6 @@ def dice_roll():
     roll_btn.pack(side="left", padx=15)
     back_btn = HoverButton(btn_frame, text="Back", bg="#ff8a65", font=("Arial", 16), width=12, command=main_menu)
     back_btn.pack(side="left", padx=15)
-
-
 # Calculator
 def calculator():
     clear_frame()
@@ -392,8 +381,6 @@ def calculator():
     clear_btn.pack(pady=15, ipadx=5, ipady=5)
     back_btn = HoverButton(container, text="Back", bg="#ff8a65", font=("Arial Black", 20), command=main_menu)
     back_btn.pack(pady=10, ipadx=5, ipady=5)
-
-
 # Password Generator
 def password_generator():
     clear_frame()
@@ -426,35 +413,120 @@ def password_generator():
 # Tic Tac Toe
 def tictactoe():
     clear_frame()
-    container = tk.Frame(center_frame, bg="#d1c4e9", bd=5, relief="groove")
-    container.pack(pady=15, padx=20, fill="both", expand=True)
-    tk.Label(container, text="⭕❌ Tic Tac Toe", font=("Arial Black", 28), bg="#d1c4e9", fg="#311b92").pack(pady=20)
+
+    # === Main container ===
+    outer_container = tk.Frame(center_frame, bg="#d1c4e9")
+    outer_container.pack(fill="both", expand=True)
+
+    # --- Scrollable area for the game ---
+    canvas = tk.Canvas(outer_container, bg="#d1c4e9", highlightthickness=0)
+    canvas.pack(side="left", fill="both", expand=True)
+
+    scrollbar = tk.Scrollbar(outer_container, orient="vertical", command=canvas.yview)
+    scrollbar.pack(side="right", fill="y")
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    game_frame = tk.Frame(canvas, bg="#d1c4e9")
+    canvas.create_window((0, 0), window=game_frame, anchor="nw")
+
+    def on_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+    game_frame.bind("<Configure>", on_configure)
+
+    def _on_mousewheel(event):
+        try:
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        except tk.TclError:
+            pass
+
+    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+
+    # === Game Header ===
+    tk.Label(game_frame, text="⭕❌ Tic Tac Toe", font=("Arial Black", 30),
+             bg="#d1c4e9", fg="#311b92").pack(pady=20)
+
     current = ["X"]
     buttons = []
+    move_history = []
+
     def check_winner():
-        wins = [(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6)]
-        for a,b,c in wins:
+        wins = [(0, 1, 2), (3, 4, 5), (6, 7, 8),
+                (0, 3, 6), (1, 4, 7), (2, 5, 8),
+                (0, 4, 8), (2, 4, 6)]
+        for a, b, c in wins:
             if buttons[a]["text"] == buttons[b]["text"] == buttons[c]["text"] != "":
                 messagebox.showinfo("Game Over", f"{buttons[a]['text']} wins!")
-                for btn in buttons: btn.config(state="disabled")
+                for btn in buttons:
+                    btn.config(state="disabled")
                 return True
         if all(btn["text"] != "" for btn in buttons):
             messagebox.showinfo("Game Over", "It's a tie!")
             return True
         return False
+
     def click(i):
         if buttons[i]["text"] == "":
             buttons[i].config(text=current[0], fg="#4527a0", font=("Arial Black", 24))
+            move_history.append(i)
             if not check_winner():
-                current[0] = "O" if current[0]=="X" else "X"
-    frame = tk.Frame(container, bg="#d1c4e9")
-    frame.pack()
+                current[0] = "O" if current[0] == "X" else "X"
+            undo_btn.config(state="normal")
+
+    def undo_move():
+        if move_history:
+            last = move_history.pop()
+            buttons[last].config(text="")
+            current[0] = "O" if current[0] == "X" else "X"
+            for btn in buttons:
+                btn.config(state="normal")
+            if not move_history:
+                undo_btn.config(state="disabled")
+
+    def restart_game():
+        for btn in buttons:
+            btn.config(text="", state="normal")
+        move_history.clear()
+        current[0] = "X"
+        undo_btn.config(state="disabled")
+
+    # === Game Board ===
+    board_frame = tk.Frame(game_frame, bg="#d1c4e9")
+    board_frame.pack(pady=10)
+
     for i in range(9):
-        b = tk.Button(frame, text="", width=6, height=3, bg="#ede7f6", relief="raised", bd=4, command=lambda i=i: click(i))
-        b.grid(row=i//3, column=i%3, padx=8, pady=8)
+        b = tk.Button(board_frame, text="", width=6, height=3, bg="#ede7f6",
+                      relief="raised", bd=4, command=lambda i=i: click(i))
+        b.grid(row=i // 3, column=i % 3, padx=8, pady=8)
         buttons.append(b)
-    back_btn = HoverButton(container, text="Back", bg="#7e57c2", fg="white", font=("Arial Black", 20), command=main_menu)
-    back_btn.pack(pady=15)
+
+    # === Control Buttons (inside scrollable area) ===
+    control_frame = tk.Frame(game_frame, bg="#d1c4e9")
+    control_frame.pack(pady=25)
+
+    undo_btn = HoverButton(control_frame, text="⬅ Undo Move", bg="#9575cd",
+                           fg="white", font=("Arial Black", 16),
+                           width=14, command=undo_move, state="disabled")
+    undo_btn.pack(side="left", padx=10)
+
+    restart_btn = HoverButton(control_frame, text="🔁 Restart", bg="#7e57c2",
+                              fg="white", font=("Arial Black", 16),
+                              width=14, command=restart_game)
+    restart_btn.pack(side="left", padx=10)
+
+    # === Fixed Main Menu Button (always visible at bottom) ===
+    fixed_menu_frame = tk.Frame(center_frame, bg="#5e35b1")
+    fixed_menu_frame.pack(side="bottom", fill="x")
+
+    back_btn = HoverButton(fixed_menu_frame, text="🏠 Back to Main Menu",
+                           bg="#5e35b1", fg="white",
+                           font=("Arial Black", 20),
+                           width=20, height=2, command=main_menu)
+    back_btn.pack(pady=8)
+
+
+    
 
 
 # Balloon Pop
@@ -510,30 +582,45 @@ def balloon_pop():
     countdown()
     back_btn = HoverButton(container, text="Back", bg="#81c784", fg="white", font=("Arial Black", 20), command=main_menu)
     back_btn.pack(pady=15)
-
-
 # Main menu with scroll
 def main_menu():
     clear_frame()
+
     container = tk.Frame(center_frame, bg=center_bg)
     container.pack(fill='both', expand=True)
+
     canvas = tk.Canvas(container, bg=center_bg, highlightthickness=0)
     canvas.pack(side='left', fill='both', expand=True)
+
     scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
     scrollbar.pack(side='right', fill='y')
+
     canvas.configure(yscrollcommand=scrollbar.set)
+
     frame = tk.Frame(canvas, bg=center_bg)
     canvas.create_window((0, 0), window=frame, anchor='nw')
+
     def on_frame_configure(event):
         canvas.configure(scrollregion=canvas.bbox("all"))
+
     frame.bind("<Configure>", on_frame_configure)
+
+    # --- SAFER MOUSE SCROLL HANDLER ---
     def _on_mousewheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-    canvas.bind_all("<MouseWheel>", _on_mousewheel)
-    canvas.bind_all("<Button-4>", lambda e: canvas.yview_scroll(-1, "units"))
-    canvas.bind_all("<Button-5>", lambda e: canvas.yview_scroll(1, "units"))
-    header = tk.Label(frame, text="Select a Game", font=("Giddyup Std", 36, "bold"), fg="#00bcd4", bg=center_bg)
+        try:
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        except tk.TclError:
+            # Canvas was destroyed or no longer exists
+            pass
+
+    # Bind scroll events to *this* canvas only
+    canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+    canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+
+    header = tk.Label(frame, text="Select a Game", font=("Giddyup Std", 36, "bold"),
+                      fg="#00bcd4", bg=center_bg)
     header.pack(pady=20)
+
     options = [
         ("🔢 Number Guessing", number_guess_game),
         ("✊✋✌ Rock Paper Scissors", rps_game),
@@ -543,17 +630,19 @@ def main_menu():
         ("⭕❌ Tic Tac Toe", tictactoe),
         ("🎈 Balloon Pop Game", balloon_pop),
     ]
+
     for (text, cmd) in options:
         b = HoverButton(frame, text=text, command=cmd,
                         bg="#03a9f4", width=30, height=2,
                         font=("Segoe Print", 24, "bold"))
         b.pack(pady=12)
+
     exit_btn = HoverButton(center_frame, text="Exit", command=root.destroy,
-                          bg="#d32f2f", fg="white",
-                          font=("Arial Black", 22), width=20, height=2)
+                           bg="#d32f2f", fg="white",
+                           font=("Arial Black", 22), width=20, height=2)
     exit_btn.pack(pady=18)
+
 
 
 main_menu()
 root.mainloop()
-
