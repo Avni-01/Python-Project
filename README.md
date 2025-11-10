@@ -3,7 +3,7 @@ A vibrant collection of easy-to-play Python games, all designed with a clean and
 <br>
 Team Members: Avni Sen , Tanya Paul . A , Swati Nandi, Yogini Parag Palshikar , Jayani k. 
 <div align="center">
-  <img src="https://img.icons8.com/external-flaticons-flat-flat-icons/512/external-game-controller-computer-science-flaticons-flat-flat-icons.png" width="80" alt="Arcade Controller"/>
+
   <h1 style="color:#ff477e; font-family: 'Trebuchet MS', sans-serif;">🎮 Python Arcade Game Collection 🎮</h1>
   <p style="font-size:1.1em; color:#333;">
     <b>Classic game hall vibes in your terminal!</b><br>
